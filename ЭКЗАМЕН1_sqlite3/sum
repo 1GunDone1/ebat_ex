@@ -146,3 +146,7 @@ app.get('/api/materials', async (req, res) => {
 .total-row td {
     border-top: 2px solid #4CAF50 !important;
 }
+
+SELECT SUM(Количество*Стоимость) СтоимостьПроизводства FROM ПродуктМатериал as a
+JOIN Материал as b on a.МатериалКод=b.Код
+WHERE ПродуктКод=1
