@@ -1,0 +1,148 @@
+##index.html
+
+// Функция подсчета общей стоимости продукции
+function calculateTotalProductsValue(products) {
+    return products.reduce((total, product) => {
+        const price = parseFloat(product.price_per_roll) || 0;
+        return total + price;
+    }, 0);
+}
+
+// Функция подсчета общей стоимости материалов
+function calculateTotalMaterialsValue(materials) {
+    return materials.reduce((total, material) => {
+        const price = parseFloat(material.unit_price) || 0;
+        const usageCount = parseInt(material.product_count) || 0;
+        return total + (price * usageCount);
+    }, 0);
+}
+
+function renderProductsTable(products) {
+    const tbody = document.querySelector('#productsTable tbody');
+    tbody.innerHTML = '';
+    
+    const totalValue = calculateTotalProductsValue(products);
+    
+    products.forEach(product => {
+        const price = parseFloat(product.price_per_roll) || 0;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${product.product_id}</td>
+            <td>${product.product_name}</td>
+            <td>${product.product_code}</td>
+            <td>${product.width_cm}×${product.length_cm} см</td>
+            <td>${price.toFixed(2)} ₽</td>
+            <td>${product.materials_count || 0}</td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Добавляем строку с итогом
+    const totalRow = document.createElement('tr');
+    totalRow.className = 'total-row';
+    totalRow.innerHTML = `
+        <td colspan="4"><strong>Общая стоимость продукции:</strong></td>
+        <td><strong>${totalValue.toFixed(2)} ₽</strong></td>
+        <td></td>
+    `;
+    tbody.appendChild(totalRow);
+}
+
+function renderMaterialsTable(materials) {
+    const tbody = document.querySelector('#materialsTable tbody');
+    tbody.innerHTML = '';
+    
+    const totalValue = calculateTotalMaterialsValue(materials);
+    
+    materials.forEach(material => {
+        const price = parseFloat(material.unit_price) || 0;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${material.material_id}</td>
+            <td>${material.material_name}</td>
+            <td>${material.material_type}</td>
+            <td>${price.toFixed(2)} ₽</td>
+            <td>${material.product_count || 0}</td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Добавляем строку с итогом
+    const totalRow = document.createElement('tr');
+    totalRow.className = 'total-row';
+    totalRow.innerHTML = `
+        <td colspan="3"><strong>Общая стоимость материалов:</strong></td>
+        <td><strong>${totalValue.toFixed(2)} ₽</strong></td>
+        <td></td>
+    `;
+    tbody.appendChild(totalRow);
+}
+
+<div class="summary-section">
+    <h3>Общая сводка</h3>
+    <div id="totalSummary"></div>
+</div>
+
+function renderTotalSummary(products, materials) {
+    const productsTotal = calculateTotalProductsValue(products);
+    const materialsTotal = calculateTotalMaterialsValue(materials);
+    const combinedTotal = productsTotal + materialsTotal;
+    
+    document.getElementById('totalSummary').innerHTML = `
+        <p>Общая стоимость продукции: <strong>${productsTotal.toFixed(2)} ₽</strong></p>
+        <p>Общая стоимость материалов: <strong>${materialsTotal.toFixed(2)} ₽</strong></p>
+        <p class="grand-total">Итого: <strong>${combinedTotal.toFixed(2)} ₽</strong></p>
+    `;
+}
+
+async function loadAllData() {
+    try {
+        const [productsRes, materialsRes] = await Promise.all([
+            fetch('/api/products'),
+            fetch('/api/materials')
+        ]);
+        
+        const products = await productsRes.json();
+        const materials = await materialsRes.json();
+        
+        renderProductsTable(products);
+        renderMaterialsTable(materials);
+        renderTotalSummary(products, materials);
+    } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+    }
+}
+
+// Вызывать при загрузке страницы
+document.addEventListener('DOMContentLoaded', loadAllData);
+
+##server.js
+
+app.get('/api/materials', async (req, res) => {
+    try {
+        const { rows } = await pool.query(`
+            SELECT 
+                m.*,
+                COUNT(pm.product_id) AS product_count,
+                (COUNT(pm.product_id) * m.unit_price AS total_value
+            FROM materials m
+            LEFT JOIN product_materials pm ON m.material_id = pm.material_id
+            GROUP BY m.material_id
+            ORDER BY m.material_id
+        `);
+        res.json(rows);
+    } catch (err) {
+        // обработка ошибок
+    }
+});
+
+##Css
+
+.total-row {
+    background-color: #e6f7ff !important;
+    font-weight: bold;
+}
+
+.total-row td {
+    border-top: 2px solid #4CAF50 !important;
+}

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учет продукции компании обоев</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #eee;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Учет продукции компании обоев</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="openTab('products')">Продукция</div>
+            <div class="tab" onclick="openTab('materials')">Материалы</div>
+        </div>
+        
+        <!-- Вкладка продукции -->
+        <div id="products" class="tab-content active">
+            <button onclick="openProductModal()">Добавить продукцию</button>
+            <table id="productsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Ширина (см)</th>
+                        <th>Длина (см)</th>
+                        <th>Толщина (мм)</th>
+                        <th>Цена за рулон</th>
+                        <th>Срок производства</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <!-- Вкладка материалов -->
+        <div id="materials" class="tab-content">
+            <button onclick="openMaterialModal()">Добавить материал</button>
+            <table id="materialsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>Цена за единицу</th>
+                        <th>Поставщик</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для продукции -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <h2 id="productModalTitle">Добавить продукцию</h2>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label for="productName">Название:</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label for="productCode">Код продукта:</label>
+                    <input type="text" id="productCode" required>
+                </div>
+                <div class="form-group">
+                    <label for="widthCm">Ширина (см):</label>
+                    <input type="number" id="widthCm" required>
+                </div>
+                <div class="form-group">
+                    <label for="lengthCm">Длина (см):</label>
+                    <input type="number" id="lengthCm" required>
+                </div>
+                <div class="form-group">
+                    <label for="thicknessMm">Толщина (мм):</label>
+                    <input type="number" step="0.01" id="thicknessMm" required>
+                </div>
+                <div class="form-group">
+                    <label for="pricePerRoll">Цена за рулон:</label>
+                    <input type="number" step="0.01" id="pricePerRoll" required>
+                </div>
+                <div class="form-group">
+                    <label for="productionTimeDays">Срок производства (дни):</label>
+                    <input type="number" id="productionTimeDays">
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Описание:</label>
+                    <textarea id="productDescription"></textarea>
+                </div>
+                <button type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для материалов -->
+    <div id="materialModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeMaterialModal()">&times;</span>
+            <h2 id="materialModalTitle">Добавить материал</h2>
+            <form id="materialForm">
+                <input type="hidden" id="materialId">
+                <div class="form-group">
+                    <label for="materialName">Название:</label>
+                    <input type="text" id="materialName" required>
+                </div>
+                <div class="form-group">
+                    <label for="materialType">Тип:</label>
+                    <select id="materialType" required>
+                        <option value="основа">Основа</option>
+                        <option value="покрытие">Покрытие</option>
+                        <option value="другое">Другое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="unitPrice">Цена за единицу:</label>
+                    <input type="number" step="0.01" id="unitPrice" required>
+                </div>
+                <div class="form-group">
+                    <label for="supplier">Поставщик:</label>
+                    <input type="text" id="supplier">
+                </div>
+                <div class="form-group">
+                    <label for="materialDescription">Описание:</label>
+                    <textarea id="materialDescription"></textarea>
+                </div>
+                <button type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для просмотра материалов продукта -->
+    <div id="productMaterialsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductMaterialsModal()">&times;</span>
+            <h2 id="productMaterialsModalTitle">Материалы продукта</h2>
+            <table id="productMaterialsTable">
+                <thead>
+                    <tr>
+                        <th>Материал</th>
+                        <th>Тип использования</th>
+                        <th>Количество на единицу</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        // Глобальные переменные
+        let products = [];
+        let materials = [];
+        let currentProductId = null;
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+            loadMaterials();
+            
+            // Обработчики форм
+            document.getElementById('productForm').addEventListener('submit', handleProductSubmit);
+            document.getElementById('materialForm').addEventListener('submit', handleMaterialSubmit);
+        });
+        
+        // Функции для работы с вкладками
+        function openTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        
+        // Функции для работы с продукцией
+async function loadProducts() {
+    try {
+        console.log('Загрузка продукции...');
+        const response = await fetch('/api/products');
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.details || error.message);
+        }
+        
+        const products = await response.json();
+        console.log('Получена продукция:', products);
+        renderProducts(products);
+    } catch (error) {
+        console.error('Ошибка загрузки продукции:', {
+            error: error,
+            response: error.response
+        });
+        alert('Ошибка: ' + error.message);
+    }
+}
+
+function renderProducts(products) {
+    const tbody = document.querySelector('#productsTable tbody');
+    tbody.innerHTML = '';
+    
+    products.forEach(product => {
+        const price = parseFloat(product.price_per_roll) || 0;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${product.product_id}</td>
+            <td>${product.product_name}</td>
+            <td>${product.product_code}</td>
+            <td>${product.width_cm}</td>
+            <td>${product.length_cm}</td>
+            <td>${product.thickness_mm} мм</td>
+            <td>${price.toFixed(2)} ₽</td>
+            <td>${product.materials_count}</td>
+            <td class="actions">
+                <button onclick="editProduct(${product.product_id})" class="edit-btn">✏️</button>
+                <button onclick="deleteProduct(${product.product_id})" class="delete-btn">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+        
+        function openProductModal(product = null) {
+            const modal = document.getElementById('productModal');
+            const title = document.getElementById('productModalTitle');
+            
+            if (product) {
+                title.textContent = 'Редактировать продукцию';
+                document.getElementById('productId').value = product.product_id;
+                document.getElementById('productName').value = product.product_name;
+                document.getElementById('productCode').value = product.product_code;
+                document.getElementById('widthCm').value = product.width_cm;
+                document.getElementById('lengthCm').value = product.length_cm;
+                document.getElementById('thicknessMm').value = product.thickness_mm;
+                document.getElementById('pricePerRoll').value = product.price_per_roll;
+                document.getElementById('productionTimeDays').value = product.production_time_days || 3;
+                document.getElementById('productDescription').value = product.description || '';
+            } else {
+                title.textContent = 'Добавить продукцию';
+                document.getElementById('productForm').reset();
+            }
+            
+            modal.style.display = 'block';
+        }
+        
+        function closeProductModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
+        
+        async function handleProductSubmit(event) {
+            event.preventDefault();
+            
+            const productData = {
+                product_name: document.getElementById('productName').value,
+                product_code: document.getElementById('productCode').value,
+                width_cm: parseInt(document.getElementById('widthCm').value),
+                length_cm: parseInt(document.getElementById('lengthCm').value),
+                thickness_mm: parseFloat(document.getElementById('thicknessMm').value),
+                price_per_roll: parseFloat(document.getElementById('pricePerRoll').value),
+                production_time_days: parseInt(document.getElementById('productionTimeDays').value) || 3,
+                description: document.getElementById('productDescription').value
+            };
+            
+            const productId = document.getElementById('productId').value;
+            const url = productId ? `/api/products/${productId}` : '/api/products';
+            const method = productId ? 'PUT' : 'POST';
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                if (!response.ok) throw new Error('Ошибка сохранения');
+                
+                closeProductModal();
+                loadProducts();
+            } catch (error) {
+                console.error('Ошибка сохранения продукции:', error);
+                alert('Не удалось сохранить данные о продукции');
+            }
+        }
+        
+     async function editProduct(productId) {
+    try {
+        const response = await fetch(`/api/products/${productId}`);
+        if (!response.ok) throw new Error('Ошибка загрузки данных');
+        
+        const product = await response.json();
+        openProductModal(product);
+    } catch (error) {
+        console.error('Ошибка при редактировании:', error);
+        alert('Не удалось загрузить данные для редактирования');
+    }
+}
+        
+        async function deleteProduct(productId) {
+            if (!confirm('Вы уверены, что хотите удалить эту продукцию?')) return;
+            
+            try {
+                const response = await fetch(`/api/products/${productId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Ошибка удаления');
+                
+                loadProducts();
+            } catch (error) {
+                console.error('Ошибка удаления продукции:', error);
+                alert('Не удалось удалить продукцию');
+            }
+        }
+        
+        // Функции для работы с материалами
+async function loadMaterials() {
+    try {
+        const response = await fetch('/api/materials');
+        if (!response.ok) throw new Error('Ошибка загрузки');
+        const materials = await response.json();
+        renderMaterialsTable(materials);
+    } catch (error) {
+        console.error('Ошибка:', error);
+        document.querySelector('#materialsTable tbody').innerHTML = 
+            '<tr><td colspan="5">Ошибка загрузки данных</td></tr>';
+    }
+}
+        
+function renderMaterialsTable(materials) {
+    const tbody = document.querySelector('#materialsTable tbody');
+    tbody.innerHTML = '';
+    
+    if (materials.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5">Нет данных о материалах</td></tr>';
+        return;
+    }
+
+    materials.forEach(material => {
+        const price = parseFloat(material.unit_price) || 0;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${material.material_id}</td>
+            <td>${material.material_name}</td>
+            <td>${material.material_type}</td>
+            <td>${price.toFixed(2)} ₽</td>
+            <td>${material.product_count || 0}</td>
+            <td class="actions">
+                <button onclick="editMaterial(${material.material_id})" class="edit-btn">✏️</button>
+                <button onclick="deleteMaterial(${material.material_id})" class="delete-btn">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+        
+        function openMaterialModal(material = null) {
+            const modal = document.getElementById('materialModal');
+            const title = document.getElementById('materialModalTitle');
+            
+            if (material) {
+                title.textContent = 'Редактировать материал';
+                document.getElementById('materialId').value = material.material_id;
+                document.getElementById('materialName').value = material.material_name;
+                document.getElementById('materialType').value = material.material_type;
+                document.getElementById('unitPrice').value = material.unit_price;
+                document.getElementById('supplier').value = material.supplier || '';
+                document.getElementById('materialDescription').value = material.description || '';
+            } else {
+                title.textContent = 'Добавить материал';
+                document.getElementById('materialForm').reset();
+            }
+            
+            modal.style.display = 'block';
+        }
+        
+        function closeMaterialModal() {
+            document.getElementById('materialModal').style.display = 'none';
+        }
+        
+        async function handleMaterialSubmit(event) {
+            event.preventDefault();
+            
+            const materialData = {
+                material_name: document.getElementById('materialName').value,
+                material_type: document.getElementById('materialType').value,
+                unit_price: parseFloat(document.getElementById('unitPrice').value),
+                supplier: document.getElementById('supplier').value,
+                description: document.getElementById('materialDescription').value
+            };
+            
+            const materialId = document.getElementById('materialId').value;
+            const url = materialId ? `/api/materials/${materialId}` : '/api/materials';
+            const method = materialId ? 'PUT' : 'POST';
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(materialData)
+                });
+                
+                if (!response.ok) throw new Error('Ошибка сохранения');
+                
+                closeMaterialModal();
+                loadMaterials();
+            } catch (error) {
+                console.error('Ошибка сохранения материала:', error);
+                alert('Не удалось сохранить данные о материале');
+            }
+        }
+        
+function editMaterial(materialId) {
+    fetch(`/api/materials/${materialId}`)
+        .then(response => response.json())
+        .then(material => {
+            openMaterialModal(material);
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки материала:', error);
+            alert('Не удалось загрузить данные материала');
+        });
+}
+
+        
+async function deleteMaterial(materialId) {
+    if (!confirm('Вы уверены, что хотите удалить этот материал?')) return;
+    
+    try {
+        const response = await fetch(`/api/materials/${materialId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) throw new Error('Ошибка удаления');
+        
+        loadMaterials();
+        alert('Материал успешно удален');
+    } catch (error) {
+        console.error('Ошибка удаления материала:', error);
+        alert('Не удалось удалить материал');
+    }
+}
+        
+        // Функции для работы с материалами продукта
+        async function viewProductMaterials(productId) {
+            currentProductId = productId;
+            
+            try {
+                const response = await fetch(`/api/products/${productId}/materials`);
+                const productMaterials = await response.json();
+                
+                const product = products.find(p => p.product_id === productId);
+                document.getElementById('productMaterialsModalTitle').textContent = `Материалы продукта: ${product.product_name}`;
+                
+                const tbody = document.querySelector('#productMaterialsTable tbody');
+                tbody.innerHTML = '';
+                
+                productMaterials.forEach(pm => {
+                    const material = materials.find(m => m.material_id === pm.material_id);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${material.material_name}</td>
+                        <td>${pm.material_usage}</td>
+                        <td>${pm.quantity_per_unit}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                document.getElementById('productMaterialsModal').style.display = 'block';
+            } catch (error) {
+                console.error('Ошибка загрузки материалов продукта:', error);
+                alert('Не удалось загрузить материалы продукта');
+            }
+        }
+        
+        function closeProductMaterialsModal() {
+            document.getElementById('productMaterialsModal').style.display = 'none';
+        }
+
+    </script>
+</body>
+</html>
