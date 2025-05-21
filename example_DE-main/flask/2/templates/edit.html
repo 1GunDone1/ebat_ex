@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Редактирование продукта</title>
+</head>
+<body>
+    <h1>Редактирование продукта</h1>
+    
+    <form method="POST">
+        <label for="name">Название продукта:</label><br>
+        <input type="text" id="name" name="name" value="{{ product['Название'] }}" required><br><br>
+        <input type="submit" value="Сохранить изменения">
+    </form>
+    
+    <a href="{{ url_for('index') }}">Вернуться к списку</a>
+</body>
+</html>

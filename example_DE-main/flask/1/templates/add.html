@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Добавление нового продукта</h1>
+    
+    <form method="post">
+        <label for="title">Название:</label>
+        <input type="text" id="title" name="title" required>
+        <button type="submit">Добавить</button>
+    </form>
+    
+    <a href="{{ url_for('index') }}">Назад к списку</a>
+{% endblock %}
